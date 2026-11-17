@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { lazy, Suspense, useEffect, useRef, type ReactElement } from "react";
 import { projects, work } from "@/content";
 import { useHashRoute } from "@/router";
 import {
@@ -10,9 +10,20 @@ import {
   Experience,
   Home,
 } from "@/components/screens";
-import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 
-const CELL = 56;
+// three.js is most of the bundle, so the background loads after the page content.
+const BackgroundCubesGrid = lazy(() =>
+  import("@/components/ui/background-cubes-grid").then((m) => ({ default: m.BackgroundCubesGrid })),
+);
+
+// Dark-mode greys for the cubes grid. Tops sit just above the page background (#141414);
+// sides are darker so the seams read as a grid, and the glow lifts the ripple.
+const CUBES = {
+  topColor: "#1a1a1a",
+  leftColor: "#121212",
+  rightColor: "#0d0d0d",
+  glowColor: "#525252",
+};
 
 const sections = {
   work: { title: "Work", intro: "Product design case studies.", entries: work },
@@ -39,23 +50,6 @@ export default function App() {
   const path = route.join("/");
   const { view, name } = resolve(route);
   const firstRender = useRef(true);
-  const appRef = useRef<HTMLDivElement>(null);
-  const [grid, setGrid] = useState({ rows: 16, cols: 27 });
-
-  // Size the background grid to cover the whole page.
-  useEffect(() => {
-    const el = appRef.current;
-    if (!el) return;
-    const measure = () => {
-      const rows = Math.ceil(el.offsetHeight / CELL);
-      const cols = Math.ceil(el.offsetWidth / CELL);
-      setGrid((g) => (g.rows === rows && g.cols === cols ? g : { rows, cols }));
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   // Title, scroll reset and focus on each route change.
   useEffect(() => {
@@ -92,8 +86,11 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app" ref={appRef}>
-      <BackgroundRippleEffect rows={grid.rows} cols={grid.cols} cellSize={CELL} gridClassName="" />
+    <div className="app">
+      {/* Fixed to the viewport so long pages don't need a page-tall WebGL canvas. */}
+      <Suspense fallback={null}>
+        <BackgroundCubesGrid className="fixed" {...CUBES} />
+      </Suspense>
       <div className="stage" key={path}>
         {view}
       </div>

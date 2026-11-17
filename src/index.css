@@ -3,28 +3,6 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --animate-cell-ripple: cell-ripple var(--duration, 200ms) ease-out none 1 var(--delay, 0ms);
-
-  @keyframes cell-ripple {
-    0% {
-      opacity: 0.4;
-    }
-    50% {
-      opacity: 0.8;
-    }
-    100% {
-      opacity: 0.4;
-    }
-  }
-}
-
-.cell {
-  border-style: solid;
-}
-
 :root {
   --bg: #141414;
   --bg-foot: #1e1e1e;
@@ -467,8 +445,7 @@ h1:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage,
-  .animate-cell-ripple {
+  .stage {
     animation: none;
   }
 
