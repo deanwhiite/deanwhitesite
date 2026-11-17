@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const START_DELAY = 350; // ms, lets the page transition settle first
-const CHAR_MS = 7; // average time per character
-const PARAGRAPH_PAUSE = 180;
-const SENTENCE_PAUSE = 110;
-const CLAUSE_PAUSE = 50;
+const CHAR_MS = 3; // average time per character
+const PARAGRAPH_PAUSE = 100;
+const SENTENCE_PAUSE = 50;
+const CLAUSE_PAUSE = 20;
 const END_CARET_MS = 2400; // how long the caret blinks after the last character
 
 /** When each character appears, in ms from the start, with a little human unevenness. */
