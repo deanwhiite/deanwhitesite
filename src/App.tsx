@@ -45,6 +45,10 @@ function useLayoutScale() {
   return scale;
 }
 
+// Everything with text on it. The background clears a dark, soft-edged space around these,
+// the same way it does under the cursor, so text always sits on the plain background.
+const TEXT_SHIELD = ".masthead, .heading, .body > p, .role > h2, .role > p, .points li, .command, .btn";
+
 // The page on screen now, as opposed to one that's animating out.
 const CURRENT = ".stage:not(.stage--leaving)";
 const LEAVE_MS = 160; // matches the page-out animation in index.css
@@ -100,8 +104,8 @@ export default function App() {
   return (
     <div className="app">
       {/* Fixed to the screen behind every page. The dither pixels grow with the layout on big
-          screens, so 4K looks like a larger 1080p rather than finer grain. The wave colour is
-          toned down from the example's #bcbcbc so body text stays readable over the dots. */}
+          screens, so 4K looks like a larger 1080p rather than finer grain. Text gets a cleared
+          space around it (TEXT_SHIELD), and the waves flow around it. */}
       <div className="fixed inset-0" aria-hidden="true">
         <Dither
           waveColor="#9a9a9a"
@@ -114,6 +118,9 @@ export default function App() {
           waveAmplitude={0.3}
           mouseEffect="erase"
           mouseRadius={0.3}
+          textShield={TEXT_SHIELD}
+          textShieldPadding={12 * scale}
+          textShieldSoftness={28 * scale}
         />
       </div>
       {/* Both pages share one keyed list, so the old page keeps its state while it leaves. */}

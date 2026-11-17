@@ -31,6 +31,15 @@ export interface DitherProps {
   /** Resolves from chunky pixels to full detail on mount. */
   intro?: boolean;
   disableAnimation?: boolean;
+  /**
+   * Added for this site: a CSS selector for elements (usually text) the waves should clear
+   * away from, like the cursor's erase. Tracks scrolling, transitions and opacity.
+   */
+  textShield?: string;
+  /** Space kept clear around each shielded element, in CSS px. Default 12. */
+  textShieldPadding?: number;
+  /** How far the cleared edge fades out, in CSS px. Default 28. */
+  textShieldSoftness?: number;
   /** Maximum device pixel ratio, capped at 2. */
   dpr?: number;
   className?: string;

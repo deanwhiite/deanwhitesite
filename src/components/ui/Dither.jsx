@@ -10,6 +10,8 @@ const MAX_RIPPLES = 4;
 const MAX_PALETTE = 8;
 const INTRO_SECONDS = 1.8;
 const RIPPLE_SECONDS = 1.6;
+// Changed from the source: the text shield mask is drawn at 1/8 of CSS resolution.
+const SHIELD_DOWNSCALE = 8;
 
 const VERTEX = `#version 300 es
 in vec2 aPosition;
@@ -38,6 +40,10 @@ uniform vec4 uRipples[${MAX_RIPPLES}];
 uniform int uRippleCount;
 uniform float uIntro;
 uniform float uReach;
+// Changed from the source: text shield (see drawShield).
+uniform sampler2D uShield;
+uniform float uShieldOn;
+uniform float uShieldSoftness;
 out vec4 outColor;
 
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -92,6 +98,19 @@ float pattern(vec2 p) {
   return fbm(p + fbm(p2));
 }
 
+// Changed from the source: a soft-edged sample of the text shield mask (17 taps).
+float shieldAt(vec2 uv) {
+  vec2 r = vec2(uShieldSoftness) / uResolution;
+  float sum = texture(uShield, uv).r * 2.0;
+  for (int i = 0; i < 8; i++) {
+    float a = float(i) * 0.78539816;
+    vec2 d = vec2(cos(a), sin(a));
+    sum += texture(uShield, uv + d * r).r;
+    sum += texture(uShield, uv + d * r * 0.5).r;
+  }
+  return sum / 18.0;
+}
+
 void main() {
   vec2 corner = (gl_FragCoord.xy - 0.5) * uCell;
   vec2 uv = corner / uResolution - 0.5;
@@ -129,6 +148,8 @@ void main() {
   if (uEffect == 0) f -= 0.5 * touch * uStrength;
   if (uEffect == 1) f += 0.5 * touch * uStrength;
   f += ring * 0.55;
+  // Changed from the source: clear the waves behind text, like the cursor's erase but stronger.
+  if (uShieldOn > 0.5) f -= 1.6 * clamp(shieldAt(corner / uResolution) * 1.6, 0.0, 1.0);
   f = (f - 0.5) * uContrast + 0.5 + uBrightness;
   float show = clamp((uIntro * uReach - length(uv)) / 0.45, 0.0, 1.0);
   float v = clamp(f, 0.0, 1.0) * show * show * (3.0 - 2.0 * show);
@@ -300,6 +321,9 @@ const Dither = ({
   trail = 0.5,
   clickRipple = true,
   intro = true,
+  textShield = '',
+  textShieldPadding = 12,
+  textShieldSoftness = 28,
   dpr,
   className = '',
   style
@@ -328,6 +352,9 @@ const Dither = ({
     trail: clamp(trail, 0, 1),
     clickRipple,
     intro,
+    textShield,
+    textShieldPadding: Math.max(0, textShieldPadding),
+    textShieldSoftness: Math.max(1, textShieldSoftness),
     dpr
   };
   const settingsRef = useRef(settings);
@@ -364,6 +391,18 @@ const Dither = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     const framebuffer = gl.createFramebuffer();
+
+    // Changed from the source: the text shield. Every frame, the elements matching
+    // `textShield` are drawn into a small 2D canvas (padded, faded by their on-screen
+    // opacity) that the wave shader samples with a soft edge.
+    const shieldCanvas = document.createElement('canvas');
+    const shieldContext = shieldCanvas.getContext('2d');
+    const shieldTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, shieldTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -421,10 +460,75 @@ const Dither = ({
       return [(x / view.width - 0.5) * aspect, -(y / view.height - 0.5)];
     };
 
+    // Changed from the source: draws the text shield mask and uploads it. Returns whether
+    // any shielded element is on screen.
+    const drawShield = () => {
+      const s = settingsRef.current;
+      if (!s.textShield || !shieldContext) return false;
+      const width = Math.max(1, Math.ceil(view.width / SHIELD_DOWNSCALE));
+      const height = Math.max(1, Math.ceil(view.height / SHIELD_DOWNSCALE));
+      if (shieldCanvas.width !== width || shieldCanvas.height !== height) {
+        shieldCanvas.width = width;
+        shieldCanvas.height = height;
+      }
+      const ctx = shieldContext;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      ctx.setTransform(1 / SHIELD_DOWNSCALE, 0, 0, 1 / SHIELD_DOWNSCALE, 0, 0);
+      ctx.fillStyle = '#fff';
+
+      const origin = container.getBoundingClientRect();
+      const pad = s.textShieldPadding;
+      const reach = pad + s.textShieldSoftness;
+      const opacities = new Map();
+      // On-screen opacity: the element's and all its ancestors', so shields fade with
+      // page transitions and staggered entrances.
+      const opacityOf = element => {
+        let opacity = 1;
+        for (let node = element; node && node !== document.documentElement; node = node.parentElement) {
+          let value = opacities.get(node);
+          if (value === undefined) {
+            value = parseFloat(getComputedStyle(node).opacity);
+            opacities.set(node, value);
+          }
+          opacity *= value;
+          if (opacity <= 0.01) return 0;
+        }
+        return opacity;
+      };
+
+      let any = false;
+      for (const element of document.querySelectorAll(s.textShield)) {
+        const r = element.getBoundingClientRect();
+        if (!r.width || !r.height) continue;
+        const x = r.left - origin.left;
+        const y = r.top - origin.top;
+        if (x + r.width < -reach || y + r.height < -reach || x > view.width + reach || y > view.height + reach) continue;
+        const opacity = opacityOf(element);
+        if (opacity <= 0.01) continue;
+        ctx.globalAlpha = opacity;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x - pad, y - pad, r.width + pad * 2, r.height + pad * 2, pad);
+        else ctx.rect(x - pad, y - pad, r.width + pad * 2, r.height + pad * 2);
+        ctx.fill();
+        any = true;
+      }
+      ctx.globalAlpha = 1;
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, shieldTexture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // the shader's y runs bottom-up
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shieldCanvas);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.activeTexture(gl.TEXTURE0);
+      return any;
+    };
+
     const render = () => {
       const s = settingsRef.current;
       const expected = Math.max(1, Math.round(s.pixelSize * view.ratio));
       if (expected !== view.cell) allocate();
+      const shieldOn = drawShield();
 
       let trailCount = 0;
       for (let i = 0; i < trailPoints.length && trailCount < MAX_TRAIL; i++) {
@@ -464,6 +568,12 @@ const Dither = ({
       gl.uniform1i(w.uRippleCount, rippleCount);
       gl.uniform1f(w.uIntro, eased);
       gl.uniform1f(w.uReach, 0.5 * Math.hypot(view.width / view.height, 1) + 0.45);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, shieldTexture);
+      gl.uniform1i(w.uShield, 1);
+      gl.uniform1f(w.uShieldOn, shieldOn ? 1 : 0);
+      gl.uniform1f(w.uShieldSoftness, s.textShieldSoftness);
+      gl.activeTexture(gl.TEXTURE0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -619,6 +729,13 @@ const Dither = ({
     window.addEventListener('pointercancel', onPointerUp, { passive: true });
     document.documentElement.addEventListener('pointerleave', onPointerLeave);
     document.addEventListener('visibilitychange', onVisibility);
+    // Changed from the source: redraw when shielded text moves or changes, which matters when
+    // the animation is paused (reduced motion) and only redraws on demand.
+    const onShieldChange = () => wake();
+    window.addEventListener('scroll', onShieldChange, { passive: true });
+    const shieldObserver = new MutationObserver(onShieldChange);
+    shieldObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    document.fonts?.ready.then(onShieldChange);
     resize();
 
     let lastDpr = settingsRef.current.dpr;
@@ -644,12 +761,15 @@ const Dither = ({
       window.removeEventListener('pointercancel', onPointerUp);
       document.documentElement.removeEventListener('pointerleave', onPointerLeave);
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('scroll', onShieldChange);
+      shieldObserver.disconnect();
       gl.deleteProgram(wave.program);
       gl.deleteProgram(dither.program);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
       gl.deleteTexture(field);
       gl.deleteFramebuffer(framebuffer);
+      gl.deleteTexture(shieldTexture);
       if (!canvas.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, []);
