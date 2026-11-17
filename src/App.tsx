@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, type ReactElement } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from "react";
 import { projects, work } from "@/content";
 import { segmentsOf, useHashRoute } from "@/router";
 import {
@@ -33,6 +33,18 @@ function resolve([first, second]: string[]): { view: ReactElement; name: string 
   return { view: <Home />, name: "" };
 }
 
+/** How much the layout is scaled up (root font size / 16px). 1 on phones, tablets and laptops. */
+function useLayoutScale() {
+  const read = () => parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
+  const [scale, setScale] = useState(read);
+  useEffect(() => {
+    const onResize = () => setScale(read());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return scale;
+}
+
 // The page on screen now, as opposed to one that's animating out.
 const CURRENT = ".stage:not(.stage--leaving)";
 const LEAVE_MS = 160; // matches the page-out animation in index.css
@@ -41,6 +53,7 @@ export default function App() {
   const { path, dir, leaving, clearLeaving } = useHashRoute();
   const { view, name } = resolve(segmentsOf(path));
   const firstRender = useRef(true);
+  const scale = useLayoutScale();
 
   // Drop the old page once it has animated out.
   useEffect(() => {
@@ -88,8 +101,16 @@ export default function App() {
     <div className="app">
       {/* Fixed to the viewport: shooting stars move in window coordinates, and long pages
           don't need a page-tall canvas. */}
-      <ShootingStars className="fixed" />
-      <StarsBackground className="fixed" />
+      {/* On big screens the stars scale with the layout: faster shooting stars (so they still
+          cross in the same time), bigger dots, and fewer per pixel, so a 4K screen looks
+          like a larger 1080p one rather than a denser one. */}
+      <ShootingStars
+        className="fixed"
+        minSpeed={10 * scale}
+        maxSpeed={30 * scale}
+        starHeight={Math.max(1, Math.round(scale))}
+      />
+      <StarsBackground className="fixed" starSize={scale} starDensity={0.00015 / (scale * scale)} />
       {/* Both pages share one keyed list, so the old page keeps its state while it leaves. */}
       <div className="stage" key={path} data-dir={dir ?? undefined}>
         {view}

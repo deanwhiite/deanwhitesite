@@ -22,6 +22,8 @@ interface StarBackgroundProps {
   twinkleProbability?: number;
   minTwinkleSpeed?: number;
   maxTwinkleSpeed?: number;
+  /** Multiplies each star's radius, so stars can scale with the layout on big screens. */
+  starSize?: number;
   className?: string;
 }
 
@@ -31,12 +33,16 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
   twinkleProbability = 0.7,
   minTwinkleSpeed = 0.5,
   maxTwinkleSpeed = 1,
+  starSize = 1,
   className,
 }) => {
   const [stars, setStars] = useState<StarProps[]>([]);
   // Changed from the source: React 19's useRef(null) returns RefObject<T | null>.
   const canvasRef: RefObject<HTMLCanvasElement | null> =
     useRef<HTMLCanvasElement>(null);
+  // Changed from the source: draw at the screen's pixel density so stars stay sharp on
+  // Retina and 4K displays. Stars are positioned in CSS pixels.
+  const dprRef = useRef(1);
 
   const generateStars = useCallback(
     (width: number, height: number): StarProps[] => {
@@ -48,7 +54,7 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
         return {
           x: Math.random() * width,
           y: Math.random() * height,
-          radius: Math.random() * 0.05 + 0.5,
+          radius: (Math.random() * 0.05 + 0.5) * starSize,
           opacity: Math.random() * 0.5 + 0.5,
           twinkleSpeed: shouldTwinkle
             ? minTwinkleSpeed +
@@ -63,6 +69,7 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
       twinkleProbability,
       minTwinkleSpeed,
       maxTwinkleSpeed,
+      starSize,
     ]
   );
 
@@ -74,8 +81,10 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
         if (!ctx) return;
 
         const { width, height } = canvas.getBoundingClientRect();
-        canvas.width = width;
-        canvas.height = height;
+        const dpr = window.devicePixelRatio || 1;
+        dprRef.current = dpr;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
         setStars(generateStars(width, height));
       }
     };
@@ -111,7 +120,9 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
     let animationFrameId: number;
 
     const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dpr = dprRef.current;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       stars.forEach((star) => {
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);

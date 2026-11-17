@@ -9,10 +9,10 @@
   --ink: #fff;
   --dim: #9b9b9b;
   --shadow: #ffffff87;
-  --line: 2px;
-  --drop: 4px;
-  --col: 390px;
-  --gutter: 24px;
+  --line: 0.125rem;
+  --drop: 0.25rem;
+  --col: 24.375rem;
+  --gutter: 1.5rem;
   --display: "Irish Grover", Georgia, serif;
   --text-font: "Nova Cut", "Trebuchet MS", sans-serif;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -25,7 +25,11 @@
   box-sizing: border-box;
 }
 
+/* 1rem is the browser's default (16px) on phones, tablets and laptops. On bigger screens it
+   grows with the viewport, by width or height, whichever is tighter, so the column keeps
+   the same share of a 1080p, 1440p or 4K screen and the home screen still fits. */
 html {
+  font-size: clamp(100%, min(1.111vw, 2vh), 250%);
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
   overflow-x: clip;
@@ -36,7 +40,7 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--text-font);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.2;
   -webkit-font-smoothing: antialiased;
 }
@@ -82,7 +86,7 @@ a {
 @keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(0.375rem);
   }
 }
 
@@ -116,28 +120,28 @@ a {
 @keyframes page-in-forward {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(1.75rem);
   }
 }
 
 @keyframes page-in-back {
   from {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateX(-1.75rem);
   }
 }
 
 @keyframes page-out-forward {
   to {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-1.25rem);
   }
 }
 
 @keyframes page-out-back {
   to {
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(1.25rem);
   }
 }
 
@@ -179,18 +183,19 @@ a {
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(0.625rem);
   }
 }
 
 .screen {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: var(--col);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: clamp(64px, 11.4dvh, 120px) var(--gutter) 0;
+  padding: clamp(4rem, 11.4dvh, 7.5rem) var(--gutter) 0;
 }
 
 h1:focus {
@@ -198,8 +203,8 @@ h1:focus {
 }
 
 .screen--home {
-  padding-top: clamp(36px, 5.9dvh, 72px);
-  padding-bottom: clamp(40px, 17.9dvh, 151px);
+  padding-top: clamp(2.25rem, 5.9dvh, 4.5rem);
+  padding-bottom: clamp(2.5rem, 17.9dvh, 9.4375rem);
 }
 
 .masthead {
@@ -208,7 +213,7 @@ h1:focus {
 
 .title {
   font-family: var(--display);
-  font-size: clamp(60px, 20.5vw, 80px);
+  font-size: clamp(3.75rem, 20.5vw, 5rem);
   font-weight: 400;
   line-height: 1;
   text-transform: uppercase;
@@ -227,21 +232,23 @@ h1:focus {
 }
 
 .tagline {
-  margin-top: 12px;
+  margin-top: 0.75rem;
 }
 
 .screen--home .menu {
   align-self: center;
-  width: min(100%, 268px);
+  width: min(100%, 16.75rem);
   margin-top: auto;
-  padding-top: 56px;
+  padding-top: 3.5rem;
 }
 
 .heading {
   font-family: var(--display);
-  font-size: 50px;
+  /* Shrinks to the column on narrow phones so single words like PROJECTS never break
+     (PROJECTS is about 5.7em wide). cqi is 1% of the .screen's content width. */
+  font-size: min(3.125rem, 17cqi);
   font-weight: 400;
-  line-height: 60px;
+  line-height: 1.2;
   letter-spacing: 0.14em;
   margin-right: -0.14em;
   text-transform: uppercase;
@@ -250,7 +257,7 @@ h1:focus {
 }
 
 .heading--long {
-  font-size: clamp(32px, 10vw, 40px);
+  font-size: clamp(2rem, 10vw, 2.5rem);
   line-height: 1.1;
   letter-spacing: 0.08em;
   margin-right: -0.08em;
@@ -260,8 +267,8 @@ h1:focus {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 16px;
-  padding: 40px 16px;
+  gap: 1rem;
+  padding: 2.5rem 1rem;
 }
 
 /* Experience and education entries */
@@ -269,12 +276,12 @@ h1:focus {
 .role {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .role + .role {
-  margin-top: 12px;
-  padding-top: 24px;
+  margin-top: 0.75rem;
+  padding-top: 1.5rem;
   border-top: var(--line) dashed var(--shadow);
 }
 
@@ -287,15 +294,15 @@ h1:focus {
 .points {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 4px 0 0;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0;
   padding: 0;
   list-style: none;
 }
 
 .points li {
   position: relative;
-  padding-left: 18px;
+  padding-left: 1.125rem;
 }
 
 .points li::before {
@@ -303,8 +310,8 @@ h1:focus {
   position: absolute;
   top: 0.4em;
   left: 0;
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
   border: var(--line) solid var(--ink);
 }
 
@@ -314,8 +321,8 @@ h1:focus {
 
 .kicker {
   text-align: center;
-  margin-top: -24px;
-  margin-bottom: 8px;
+  margin-top: -1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Sticky back button */
@@ -324,7 +331,7 @@ h1:focus {
   position: sticky;
   bottom: 0;
   margin: 0 calc(var(--gutter) * -1);
-  padding: 19px var(--gutter) calc(19px + env(safe-area-inset-bottom));
+  padding: 1.1875rem var(--gutter) calc(1.1875rem + env(safe-area-inset-bottom));
   background: linear-gradient(to bottom, var(--bg), var(--bg-foot));
   border-image: linear-gradient(to bottom, var(--bg), var(--bg-foot)) fill 0 / 0 / 0 100vw;
 }
@@ -334,11 +341,11 @@ h1:focus {
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5rem;
 }
 
 .menu--list {
-  margin-top: 16px;
+  margin-top: 1rem;
   padding-bottom: var(--drop);
 }
 
@@ -347,10 +354,10 @@ h1:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 43px;
+  gap: 0.625rem;
+  min-height: 2.6875rem;
   margin-right: var(--drop);
-  padding: 10px 16px;
+  padding: 0.625rem 1rem;
   border: var(--line) solid var(--ink);
   background: var(--bg);
   color: var(--ink);
@@ -370,15 +377,15 @@ h1:focus {
 
 .btn:hover,
 .btn:focus-visible {
-  transform: translate(-2px, -2px);
+  transform: translate(-0.125rem, -0.125rem);
   box-shadow:
-    calc(var(--drop) + 2px) calc(var(--drop) + 2px) 0 calc(var(--line) * -1) var(--bg),
-    calc(var(--drop) + 2px) calc(var(--drop) + 2px) 0 0 var(--ink);
+    calc(var(--drop) + 0.125rem) calc(var(--drop) + 0.125rem) 0 calc(var(--line) * -1) var(--bg),
+    calc(var(--drop) + 0.125rem) calc(var(--drop) + 0.125rem) 0 0 var(--ink);
 }
 
 .btn:focus-visible {
   outline: var(--line) dashed var(--ink);
-  outline-offset: 3px;
+  outline-offset: 0.1875rem;
 }
 
 .btn:active {
@@ -399,50 +406,50 @@ h1:focus {
 
 .btn--wide {
   width: calc(100% - var(--drop));
-  min-height: 48px;
+  min-height: 3rem;
 }
 
 .btn--row {
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 16px;
+  gap: 0.1875rem;
+  padding: 0.625rem 1rem;
 }
 
 .btn--row small {
   color: var(--dim);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .btn--small {
   flex: none;
-  min-height: 36px;
-  padding: 4px 14px;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.875rem;
 }
 
 .socials {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin: 20px 0 0;
+  gap: 1.25rem;
+  margin: 1.25rem 0 0;
   padding: 0 0 var(--drop);
   list-style: none;
 }
 
 .btn--icon {
-  width: 48px;
-  min-height: 48px;
+  width: 3rem;
+  min-height: 3rem;
   padding: 0;
 }
 
 .icon {
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .icon--out {
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 /* Images */
@@ -450,11 +457,11 @@ h1:focus {
 .portrait {
   display: block;
   align-self: center;
-  width: min(200px, 60%);
+  width: min(12.5rem, 60%);
   height: auto;
   aspect-ratio: 1;
   object-fit: cover;
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
   border: var(--line) solid var(--ink);
   background: #222;
   box-shadow:
@@ -463,7 +470,7 @@ h1:focus {
 }
 
 .shots {
-  margin: 4px var(--drop) 10px 0;
+  margin: 0.25rem var(--drop) 0.625rem 0;
 }
 
 .shots img {
@@ -479,10 +486,10 @@ h1:focus {
 
 .shots--strip {
   display: flex;
-  gap: 16px;
-  margin-left: -16px;
-  margin-right: -16px;
-  padding: 0 calc(16px + var(--drop)) calc(var(--drop) + 8px) 16px;
+  gap: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding: 0 calc(1rem + var(--drop)) calc(var(--drop) + 0.5rem) 1rem;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
@@ -500,9 +507,9 @@ h1:focus {
 .command {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 6px var(--drop) 6px 0;
-  padding: 10px 12px;
+  gap: 0.75rem;
+  margin: 0.375rem var(--drop) 0.375rem 0;
+  padding: 0.625rem 0.75rem;
   border: var(--line) dashed var(--shadow);
 }
 
@@ -510,35 +517,70 @@ h1:focus {
   flex: 1;
   min-width: 0;
   font-family: var(--text-font);
-  font-size: 13px;
+  font-size: 0.8125rem;
   overflow-wrap: anywhere;
   user-select: all;
 }
 
 @media (width >= 720px) {
   :root {
-    --col: 470px;
+    --col: 29.375rem;
   }
 
   body {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .title {
-    font-size: 100px;
+    font-size: 6.25rem;
   }
 
   .screen--home .menu {
-    width: 310px;
+    width: 19.375rem;
   }
 
   .heading {
-    font-size: 62px;
-    line-height: 74px;
+    font-size: 3.875rem;
+    line-height: 4.625rem;
   }
 
   .heading--long {
-    font-size: 48px;
+    font-size: 3rem;
+  }
+}
+
+/* Short portrait screens (iPhone SE, small Androids): tighten the home screen so it fits. */
+@media (orientation: portrait) and (max-height: 640px) {
+  .screen--home {
+    padding-bottom: clamp(2rem, 10dvh, 4rem);
+  }
+
+  .screen--home .menu {
+    padding-top: 2rem;
+  }
+}
+
+/* Phones on their side: name on the left, menu on the right, both on screen. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .screen--home {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2rem, 6vw, 4rem);
+    max-width: none;
+    padding: 1.5rem max(var(--gutter), env(safe-area-inset-right)) 1.5rem
+      max(var(--gutter), env(safe-area-inset-left));
+  }
+
+  .screen--home .title {
+    font-size: min(5rem, 18vh);
+  }
+
+  .screen--home .menu {
+    flex: none;
+    width: min(17rem, 40vw);
+    margin-top: 0;
+    padding-top: 0;
   }
 }
 
