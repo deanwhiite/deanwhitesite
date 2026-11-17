@@ -11,8 +11,7 @@ import {
   Home,
 } from "@/components/screens";
 import { PreloadImages } from "@/components/picture";
-import { ShootingStars } from "@/components/ui/shooting-stars";
-import { StarsBackground } from "@/components/ui/stars-background";
+import Dither from "@/components/ui/Dither";
 
 const sections = {
   work: { title: "Work", intro: "Product design case studies.", entries: work },
@@ -100,18 +99,23 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Fixed to the viewport: shooting stars move in window coordinates, and long pages
-          don't need a page-tall canvas. */}
-      {/* On big screens the stars scale with the layout: faster shooting stars (so they still
-          cross in the same time), bigger dots, and fewer per pixel, so a 4K screen looks
-          like a larger 1080p one rather than a denser one. */}
-      <ShootingStars
-        className="fixed"
-        minSpeed={10 * scale}
-        maxSpeed={30 * scale}
-        starHeight={Math.max(1, Math.round(scale))}
-      />
-      <StarsBackground className="fixed" starSize={scale} starDensity={0.00015 / (scale * scale)} />
+      {/* Fixed to the screen behind every page. The dither pixels grow with the layout on big
+          screens, so 4K looks like a larger 1080p rather than finer grain. The wave colour is
+          toned down from the example's #bcbcbc so body text stays readable over the dots. */}
+      <div className="fixed inset-0" aria-hidden="true">
+        <Dither
+          waveColor="#9a9a9a"
+          backgroundColor="#141414"
+          ditherMode="bayer"
+          colorNum={4}
+          pixelSize={2 * scale}
+          waveSpeed={0.05}
+          waveFrequency={3}
+          waveAmplitude={0.3}
+          mouseEffect="erase"
+          mouseRadius={0.3}
+        />
+      </div>
       {/* Both pages share one keyed list, so the old page keeps its state while it leaves. */}
       <div className="stage" key={path} data-dir={dir ?? undefined}>
         {view}
