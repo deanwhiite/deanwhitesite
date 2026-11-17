@@ -10,6 +10,7 @@ import {
   Experience,
   Home,
 } from "@/components/screens";
+import { PreloadImages } from "@/components/picture";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 
@@ -115,6 +116,7 @@ export default function App() {
       <div className="stage" key={path} data-dir={dir ?? undefined}>
         {view}
       </div>
+      <PreloadImages />
       {leaving && (
         <div
           className="stage stage--leaving"

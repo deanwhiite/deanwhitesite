@@ -1,0 +1,89 @@
+{
+  "/about/dean.jpg": {
+    "base": "/img/about/dean-0032400e",
+    "width": 800,
+    "height": 800,
+    "widths": [
+      240,
+      480,
+      800
+    ]
+  },
+  "/projects/flyfair.png": {
+    "base": "/img/projects/flyfair-7c1f28d2",
+    "width": 1200,
+    "height": 679,
+    "widths": [
+      480,
+      800,
+      1200
+    ]
+  },
+  "/projects/ourflo.png": {
+    "base": "/img/projects/ourflo-2885bb76",
+    "width": 1017,
+    "height": 630,
+    "widths": [
+      480,
+      800,
+      1017
+    ]
+  },
+  "/projects/snapstore.png": {
+    "base": "/img/projects/snapstore-41bbdd0e",
+    "width": 1029,
+    "height": 1200,
+    "widths": [
+      480,
+      800,
+      1029
+    ]
+  },
+  "/projects/timelock.png": {
+    "base": "/img/projects/timelock-8f053bc6",
+    "width": 698,
+    "height": 940,
+    "widths": [
+      480,
+      698
+    ]
+  },
+  "/side/launch-schedule.png": {
+    "base": "/img/side/launch-schedule-26b45120",
+    "width": 2180,
+    "height": 1380,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "/side/rocket-plonk-1.png": {
+    "base": "/img/side/rocket-plonk-1-dafaad74",
+    "width": 720,
+    "height": 1280,
+    "widths": [
+      480,
+      720
+    ]
+  },
+  "/side/rocket-plonk-2.png": {
+    "base": "/img/side/rocket-plonk-2-12a6f9f1",
+    "width": 720,
+    "height": 1280,
+    "widths": [
+      480,
+      720
+    ]
+  },
+  "/side/rocket-plonk-3.png": {
+    "base": "/img/side/rocket-plonk-3-be8fa174",
+    "width": 720,
+    "height": 1280,
+    "widths": [
+      480,
+      720
+    ]
+  }
+}

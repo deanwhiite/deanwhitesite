@@ -148,6 +148,7 @@ a {
 /* Content settles in one block at a time. */
 
 .stage:not(.stage--leaving) .body > *,
+.stage:not(.stage--leaving) .body > picture > img,
 .stage:not(.stage--leaving) .screen--home .menu > * {
   animation: rise 520ms var(--ease-out-expo) both;
   animation-delay: calc(180ms + var(--i, 0) * 55ms);
@@ -453,6 +454,16 @@ h1:focus {
 }
 
 /* Images */
+
+/* <picture> only picks the file; the <img> inside is what's laid out and styled. */
+picture {
+  display: contents;
+}
+
+/* Otherwise <source> becomes an empty flex item and adds an extra gap. */
+picture > source {
+  display: none;
+}
 
 .portrait {
   display: block;

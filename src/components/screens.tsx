@@ -12,6 +12,7 @@ import {
 } from "@/content";
 import { BackIcon, ExternalIcon, socialPaths } from "@/components/icons";
 import { href } from "@/router";
+import { Picture, SIZES } from "@/components/picture";
 
 function NavButton({ to, children }: { to: string; children: ReactNode }) {
   return (
@@ -80,13 +81,12 @@ export function Home() {
 export function About() {
   return (
     <Screen title="About" back={href()}>
-      <img
+      <Picture
         className="portrait"
         src="/about/dean.jpg"
         alt="Dean White smiling, sitting on pale sandstone in the sun"
-        width={800}
-        height={800}
-        decoding="async"
+        sizes={SIZES.portrait}
+        fetchPriority="high"
       />
       {about.map((p) => (
         <p key={p}>{p}</p>
@@ -191,14 +191,13 @@ export function EntryDetail({ section, entry }: { section: string; entry: Entry 
       <p className="dim kicker">{entry.subtitle}</p>
       <div className={single ? "shots" : "shots shots--strip"}>
         {entry.pictures.map((pic, i) => (
-          <img
+          <Picture
             key={pic.src}
             src={pic.src}
             alt={pic.alt}
-            width={pic.width}
-            height={pic.height}
+            sizes={single ? SIZES.shot : SIZES.strip}
             loading={i === 0 ? "eager" : "lazy"}
-            decoding="async"
+            fetchPriority={i === 0 ? "high" : undefined}
           />
         ))}
       </div>
