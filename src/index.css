@@ -183,36 +183,6 @@ a {
   }
 }
 
-/* Typewriter text on the About page */
-
-.untyped {
-  visibility: hidden;
-}
-
-.caret {
-  position: relative;
-}
-
-.caret::after {
-  content: "";
-  position: absolute;
-  left: 1px;
-  top: 0.05em;
-  width: 0.5em;
-  height: 1.05em;
-  background: currentColor;
-}
-
-.caret--blink::after {
-  animation: caret-blink 1s steps(1) infinite;
-}
-
-@keyframes caret-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
 .screen {
   display: flex;
   flex-direction: column;
