@@ -1,6 +1,6 @@
-import { useEffect, useRef, type ReactElement } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactElement } from "react";
 import { projects, work } from "@/content";
-import { useHashRoute } from "@/router";
+import { segmentsOf, useHashRoute } from "@/router";
 import {
   About,
   Contact,
@@ -33,21 +33,32 @@ function resolve([first, second]: string[]): { view: ReactElement; name: string 
   return { view: <Home />, name: "" };
 }
 
+// The page on screen now, as opposed to one that's animating out.
+const CURRENT = ".stage:not(.stage--leaving)";
+const LEAVE_MS = 160; // matches the page-out animation in index.css
+
 export default function App() {
-  const route = useHashRoute();
-  const path = route.join("/");
-  const { view, name } = resolve(route);
+  const { path, dir, leaving, clearLeaving } = useHashRoute();
+  const { view, name } = resolve(segmentsOf(path));
   const firstRender = useRef(true);
 
-  // Title, scroll reset and focus on each route change.
+  // Drop the old page once it has animated out.
   useEffect(() => {
+    if (!leaving) return;
+    const t = window.setTimeout(clearLeaving, LEAVE_MS);
+    return () => window.clearTimeout(t);
+  }, [leaving, clearLeaving]);
+
+  // Title, scroll reset and focus on each route change. A layout effect, so the new page
+  // never paints at the old page's scroll position.
+  useLayoutEffect(() => {
     document.title = name ? `${name} — Dean White` : "Dean White — designer of web things";
     window.scrollTo(0, 0);
     if (firstRender.current) {
       firstRender.current = false;
       return;
     }
-    document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+    document.querySelector<HTMLElement>(`${CURRENT} h1`)?.focus({ preventScroll: true });
   }, [path, name]);
 
   // Escape goes back; arrow keys move between menu buttons.
@@ -55,11 +66,11 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === "Escape") {
-        document.querySelector<HTMLElement>("[data-back]")?.click();
+        document.querySelector<HTMLElement>(`${CURRENT} [data-back]`)?.click();
         return;
       }
       if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-      const buttons = Array.from(document.querySelectorAll<HTMLElement>(".menu .btn"));
+      const buttons = Array.from(document.querySelectorAll<HTMLElement>(`${CURRENT} .menu .btn`));
       if (!buttons.length) return;
       const current = buttons.indexOf(document.activeElement as HTMLElement);
       if (current === -1 && document.activeElement instanceof HTMLButtonElement) return;
@@ -79,9 +90,21 @@ export default function App() {
           don't need a page-tall canvas. */}
       <ShootingStars className="fixed" />
       <StarsBackground className="fixed" />
-      <div className="stage" key={path}>
+      {/* Both pages share one keyed list, so the old page keeps its state while it leaves. */}
+      <div className="stage" key={path} data-dir={dir ?? undefined}>
         {view}
       </div>
+      {leaving && (
+        <div
+          className="stage stage--leaving"
+          key={leaving.path}
+          data-dir={leaving.dir}
+          style={{ top: leaving.top }}
+          inert
+        >
+          {resolve(segmentsOf(leaving.path)).view}
+        </div>
+      )}
     </div>
   );
 }

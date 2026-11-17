@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   about,
   contactIntro,
@@ -11,7 +11,8 @@ import {
   type Link,
 } from "@/content";
 import { BackIcon, ExternalIcon, socialPaths } from "@/components/icons";
-import { href } from "@/router";
+import { href, prefersReducedMotion } from "@/router";
+import { TypedText, useTypewriter } from "@/typewriter";
 
 function NavButton({ to, children }: { to: string; children: ReactNode }) {
   return (
@@ -77,7 +78,29 @@ export function Home() {
   );
 }
 
+// The bio types out once per visit to the site; after that it shows straight away.
+let aboutTyped = false;
+const aboutTexts = [...about, profile.location];
+
 export function About() {
+  const [animate] = useState(() => !aboutTyped && !prefersReducedMotion());
+  const { counts, caretAt, done, started } = useTypewriter(aboutTexts, animate);
+
+  useEffect(() => {
+    if (done) aboutTyped = true;
+  }, [done]);
+  // Leaving partway through also counts as seen.
+  useEffect(
+    () => () => {
+      if (started.current) aboutTyped = true;
+    },
+    [started],
+  );
+
+  const typed = (i: number) => (
+    <TypedText text={aboutTexts[i]} count={counts[i]} caret={caretAt === i} blinking={done} />
+  );
+
   return (
     <Screen title="About" back={href()}>
       <img
@@ -88,10 +111,10 @@ export function About() {
         height={800}
         decoding="async"
       />
-      {about.map((p) => (
-        <p key={p}>{p}</p>
+      {about.map((p, i) => (
+        <p key={p}>{typed(i)}</p>
       ))}
-      <p className="dim">{profile.location}</p>
+      <p className="dim">{typed(about.length)}</p>
       <nav className="menu menu--list" aria-label="More about me">
         <NavButton to={href("about", "experience")}>Experience</NavButton>
         <NavButton to={href("about", "education")}>Education</NavButton>

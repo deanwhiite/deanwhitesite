@@ -15,6 +15,7 @@
   --gutter: 24px;
   --display: "Irish Grover", Georgia, serif;
   --text-font: "Nova Cut", "Trebuchet MS", sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
 }
 
@@ -82,6 +83,133 @@ a {
   from {
     opacity: 0;
     transform: translateY(6px);
+  }
+}
+
+/* Page transitions. Going deeper slides the new page in from the right and the old one out
+   to the left; going back reverses it. The old page is pinned where it was on screen
+   (top is set inline) while the new one starts at the top. */
+
+.stage[data-dir="forward"] {
+  animation: page-in-forward 380ms var(--ease-out-expo) 120ms both;
+}
+
+.stage[data-dir="back"] {
+  animation: page-in-back 380ms var(--ease-out-expo) 120ms both;
+}
+
+.stage--leaving {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9;
+}
+
+.stage--leaving[data-dir="forward"] {
+  animation: page-out-forward 140ms ease-in forwards;
+}
+
+.stage--leaving[data-dir="back"] {
+  animation: page-out-back 140ms ease-in forwards;
+}
+
+@keyframes page-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes page-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+
+@keyframes page-out-forward {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes page-out-back {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Content settles in one block at a time. */
+
+.stage:not(.stage--leaving) .body > *,
+.stage:not(.stage--leaving) .screen--home .menu > * {
+  animation: rise 520ms var(--ease-out-expo) both;
+  animation-delay: calc(180ms + var(--i, 0) * 55ms);
+}
+
+.body > :nth-child(2),
+.screen--home .menu > :nth-child(2) {
+  --i: 1;
+}
+
+.body > :nth-child(3),
+.screen--home .menu > :nth-child(3) {
+  --i: 2;
+}
+
+.body > :nth-child(4),
+.screen--home .menu > :nth-child(4) {
+  --i: 3;
+}
+
+.body > :nth-child(5) {
+  --i: 4;
+}
+
+.body > :nth-child(6) {
+  --i: 5;
+}
+
+.body > :nth-child(n + 7) {
+  --i: 6;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Typewriter text on the About page */
+
+.untyped {
+  visibility: hidden;
+}
+
+.caret {
+  position: relative;
+}
+
+.caret::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 0.05em;
+  width: 0.5em;
+  height: 1.05em;
+  background: currentColor;
+}
+
+.caret--blink::after {
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
   }
 }
 
@@ -445,8 +573,9 @@ h1:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage {
-    animation: none;
+  .stage,
+  .stage * {
+    animation: none !important;
   }
 
   .btn {
